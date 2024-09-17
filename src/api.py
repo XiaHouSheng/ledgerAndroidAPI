@@ -27,7 +27,7 @@ class Ledger(Base):
     id = Column(Integer,primary_key=True)
     username = Column(String(16))
     type_ = Column(String(3))
-    num = Column(Integer)
+    num = Column(Float)
     time_ = Column(Date,default=datetime.now().date())
 
     
@@ -74,11 +74,13 @@ def upload():
 def getItem():
     response.content_type="application/json"
     data=request.json
+    users = session.query(User)
+    targetUserName = users.filter(User.token==data["token"]).first().username
     method_=data["method"]
     if method_==0: #获取日数据
         specific_date_list = data["specificDate"].split("-")
         specific_date = date(specific_date_list[0],specific_date_list[1],specific_date_list[2])
-        query = session.query(Ledger).filter(Ledger.time_==specific_date)
+        query = session.query(Ledger).filter(Ledger.time_==specific_date,Ledger.username==targetUserName)
         results = query.all()
         if not results:
             return json.dumps({"code":0,"items":[],"total":""})
@@ -88,7 +90,7 @@ def getItem():
     if method_==1: #获取近七天数据
         end_day=datetime.now().date()
         start_day=end_day-timedelta(days=6)
-        query = session.query(Ledger).filter(Ledger.time_ >= start_day, Ledger.time_ <= end_day)
+        query = session.query(Ledger).filter(Ledger.time_ >= start_day, Ledger.time_ <= end_day,Ledger.username==targetUserName)
         results = query.all()
         if not results:
             return json.dumps({"code":0,"items":[],"total":""})
@@ -105,7 +107,7 @@ def getItem():
             end_day=datetime.date(year,month,31)
         else:
             end_day=datetime.date(year,month,30)
-        query = session.query(Ledger).filter(Ledger.time_ >= start_day, Ledger.time_ <= end_day)
+        query = session.query(Ledger).filter(Ledger.time_ >= start_day, Ledger.time_ <= end_day,Ledger.username==targetUserName)
         results = query.all()
         if not results:
             return json.dumps({"code":0,"items":[],"total":""})
