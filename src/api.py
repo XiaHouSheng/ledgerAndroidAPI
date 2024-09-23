@@ -64,7 +64,7 @@ def upload():
     targetUser=users.filter(User.token==token).first()
     if targetUser:
         username=targetUser.username
-        new_leger_item=Ledger(username=username,num=num,type_=type_)
+        new_leger_item=Ledger(username=username,num=num,type_=type_,time_=datetime.now().date())
         session.add(new_leger_item)
         session.commit()
         return {"code":1,"msg":"添加成功"}
@@ -114,6 +114,22 @@ def getItem():
         results_items = [{"num":item.num,"type_":item.type_,"time_":item.time_.isoformat()} for item in results]
         total = sum([i["num"] for i in results_items])
         return json.dumps({"code":1,"items":results_items,"total":total},ensure_ascii=False)
+    
+#delete
+@app.route("/deleteitem",method="POST")
+def delete():
+    response.content_type="application/json"
+    data = request.json
+    token = data["token"]
+    id = data["id"]
+    users = session.query(User)
+    targetUser = users.filter(User.token==token).first()
+    if targetUser:
+        session.query(Ledger).filter(Ledger.id==id).delete()
+        session.commit
+        return json.dumps({"code":1,"msg":"success"})
+    return json.dumps({"code":0,"msg":"failed|invalid user"})
+
 @app.route("/test",method="GET")
 def test():
     return "ok!"
