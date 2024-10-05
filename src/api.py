@@ -69,6 +69,31 @@ def upload():
         session.commit()
         return {"code":1,"msg":"添加成功"}
     return {"code":0,"msg":"添加失败"}
+
+#update
+@app.route("/update",method="POST")
+def update():
+    response.content_type = "application/json"
+    data = request.json
+    token = data["token"]
+    num = data["num"]
+    id = data["id"]
+    type_ = data["type"]
+    users = session.query(User)
+    user = users.filter(User.token == token).first()
+    if user:
+        query = session.query(Ledger).filter(Ledger.id == id).first()
+        if query:
+            query.num = num
+            query.type_ = type_
+            session.commit()
+            return json.dumps({"code":1,"msg":"success"})
+        else:
+            return json.dumps({"code":0,"msg":"failed"})
+    else:
+        return json.dumps({"code":0,"msg":"failed"})
+    
+
 #get
 @app.route("/getitems",method="GET")
 def getItem():
@@ -84,7 +109,7 @@ def getItem():
         results = query.all()
         if not results:
             return json.dumps({"code":0,"items":[],"total":""})
-        results_items = [{"num":item.num,"type_":item.type_,"time_":item.time_.isoformat()} for item in results]
+        results_items = [{"num":item.num,"type_":item.type_,"time_":item.time_.isoformat(),"id":item.id} for item in results]
         total = sum([i["num"] for i in results_items])
         return json.dumps({"code":1,"items":results_items,"total":total},ensure_ascii=False)
     if method_==1: #获取近七天数据
@@ -94,7 +119,7 @@ def getItem():
         results = query.all()
         if not results:
             return json.dumps({"code":0,"items":[],"total":""})
-        results_items = [{"num":item.num,"type_":item.type_,"time_":item.time_.isoformat()} for item in results]
+        results_items = [{"num":item.num,"type_":item.type_,"time_":item.time_.isoformat(),"id":item.id} for item in results]
         total = sum([i["num"] for i in results_items])
         return json.dumps({"code":1,"items":results_items,"total":total},ensure_ascii=False)
     if method_==2: #获取月数据
@@ -111,7 +136,7 @@ def getItem():
         results = query.all()
         if not results:
             return json.dumps({"code":0,"items":[],"total":""})
-        results_items = [{"num":item.num,"type_":item.type_,"time_":item.time_.isoformat()} for item in results]
+        results_items = [{"num":item.num,"type_":item.type_,"time_":item.time_.isoformat(),"id":item.id} for item in results]
         total = sum([i["num"] for i in results_items])
         return json.dumps({"code":1,"items":results_items,"total":total},ensure_ascii=False)
     
